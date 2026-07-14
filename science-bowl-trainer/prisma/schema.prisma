@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  CAPTAIN
+  COACH
+  ADMIN
+}
+
+enum Subject {
+  BIOLOGY
+  CHEMISTRY
+  PHYSICS
+  EARTH_SCIENCE
+  MATH
+  ENERGY
+  GENERAL_SCIENCE
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum QuestionType {
+  TOSS_UP
+  BONUS
+}
+
+enum PracticeMode {
+  TIMED
+  UNTIMED
+}
+
+model User {
+  id               String            @id @default(cuid())
+  email            String            @unique
+  name             String
+  role             Role              @default(STUDENT)
+  avatar           String?
+  teamId           String?
+  team             Team?             @relation(fields: [teamId], references: [id])
+  attempts         Attempt[]
+  practiceSessions PracticeSession[]
+  statistics       Statistic[]
+  announcements    Announcement[]
+  createdAt        DateTime          @default(now())
+}
+
+model Team {
+  id            String         @id @default(cuid())
+  name          String
+  school        String
+  description   String?
+  members       User[]
+  practices     Practice[]
+  matches       Match[]
+  announcements Announcement[]
+  createdAt     DateTime       @default(now())
+}
+
+model Question {
+  id            String        @id @default(cuid())
+  question      String
+  answer        String
+  subject       Subject
+  difficulty    Difficulty
+  type          QuestionType
+  year          Int?
+  source        String?
+  tags          String[]
+  questionSetId String?
+  questionSet   QuestionSet?  @relation(fields: [questionSetId], references: [id])
+  attempts      Attempt[]
+  createdAt     DateTime      @default(now())
+}
+
+model QuestionSet {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  questions   Question[]
+  createdAt   DateTime   @default(now())
+}
+
+model Practice {
+  id          String   @id @default(cuid())
+  teamId      String
+  team        Team     @relation(fields: [teamId], references: [id])
+  scheduledAt DateTime
+  duration    Int
+  notes       String?
+  attendees   String[]
+  createdAt   DateTime @default(now())
+}
+
+model Match {
+  id        String   @id @default(cuid())
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id])
+  opponent  String
+  date      DateTime
+  location  String?
+  score     Json?
+  createdAt DateTime @default(now())
+}
+
+model Attempt {
+  id                String           @id @default(cuid())
+  userId            String
+  user              User             @relation(fields: [userId], references: [id])
+  questionId        String
+  question          Question         @relation(fields: [questionId], references: [id])
+  correct           Boolean
+  timeSpent         Int
+  practiceSessionId String?
+  practiceSession   PracticeSession? @relation(fields: [practiceSessionId], references: [id])
+  createdAt         DateTime         @default(now())
+}
+
+model PracticeSession {
+  id            String       @id @default(cuid())
+  userId        String
+  user          User         @relation(fields: [userId], references: [id])
+  mode          PracticeMode
+  subject       Subject?
+  difficulty    Difficulty?
+  questionCount Int
+  correctCount  Int
+  duration      Int
+  attempts      Attempt[]
+  createdAt     DateTime     @default(now())
+}
+
+model Statistic {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  subject   Subject
+  correct   Int      @default(0)
+  total     Int      @default(0)
+  streak    Int      @default(0)
+  updatedAt DateTime @updatedAt
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id])
+  title     String
+  content   String
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+}
