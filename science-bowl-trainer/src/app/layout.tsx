@@ -1,12 +1,12 @@
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import localFont from "next/font/local"
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import "./globals.css"
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
+const geist = localFont({
+  src: "../../public/fonts/geist-latin.woff2",
+  variable: "--font-sans",
   display: "swap",
 })
 
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} min-h-screen bg-slate-50 font-sans text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-50`}>
+      <body className={`${geist.variable} min-h-screen bg-slate-50 font-sans text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-50`}>
         <ThemeProvider>
           {children}
           <Toaster />

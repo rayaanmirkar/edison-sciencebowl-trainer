@@ -1,24 +1,14 @@
 import Papa from "papaparse"
 import type { Difficulty, Question, QuestionType, Subject } from "./types"
 
-interface CSVRow {
-  Question?: string
-  question?: string
-  Answer?: string
-  answer?: string
-  Subject?: string
-  subject?: string
-  Category?: string
-  category?: string
-  Difficulty?: string
-  difficulty?: string
-  Type?: string
-  type?: string
-  Year?: string
-  year?: string
-  Source?: string
-  source?: string
-  [key: string]: string | undefined
+type CSVRow = Record<string, string | undefined>
+
+function getField(row: CSVRow, ...keys: string[]): string {
+  for (const key of keys) {
+    const value = row[key] ?? row[key.toLowerCase()] ?? row[key.toUpperCase()]
+    if (value && value.trim().length > 0) return value.trim()
+  }
+  return ""
 }
 
 function normalizeSubject(raw: string): Subject {
@@ -64,24 +54,25 @@ export function parseCSVQuestions(csvText: string): Omit<Question, "id" | "creat
 
   return result.data
     .filter((row) => {
-      const question = row.Question ?? row.question
-      const answer = row.Answer ?? row.answer
-      return Boolean(question && answer && question.length > 0 && answer.length > 0)
+      const question = getField(row, "Question")
+      const answer = getField(row, "Answer")
+      return question.length > 0 && answer.length > 0
     })
     .map((row) => {
-      const rawSubject = row.Subject ?? row.subject ?? row.Category ?? row.category ?? "General Science"
-      const rawDifficulty = row.Difficulty ?? row.difficulty ?? "Medium"
-      const rawType = row.Type ?? row.type ?? "Toss-Up"
-      const rawYear = row.Year ?? row.year
+      const rawSubject = getField(row, "Subject", "Category") || "General Science"
+      const rawDifficulty = getField(row, "Difficulty") || "Medium"
+      const rawType = getField(row, "Type") || "Toss-Up"
+      const rawYear = getField(row, "Year")
+      const source = getField(row, "Source")
 
       return {
-        question: (row.Question ?? row.question ?? "").trim(),
-        answer: (row.Answer ?? row.answer ?? "").trim(),
+        question: getField(row, "Question"),
+        answer: getField(row, "Answer"),
         subject: normalizeSubject(rawSubject),
         difficulty: normalizeDifficulty(rawDifficulty),
         type: normalizeType(rawType),
         year: rawYear ? Number.parseInt(rawYear, 10) : undefined,
-        source: (row.Source ?? row.source ?? "").trim() || undefined,
+        source: source || undefined,
         tags: [],
         questionSetId: undefined,
       }
