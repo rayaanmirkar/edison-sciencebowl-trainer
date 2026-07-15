@@ -75,7 +75,7 @@ model Question {
   difficulty    Difficulty
   type          QuestionType
   year          Int?
-  source        String?
+  packet        String?       @comment "Source packet: DOE|Stanford|MIT|PrepforSTEM|ScienceSpoon|Quizbowl|UConn"
   tags          String[]
   questionSetId String?
   questionSet   QuestionSet?  @relation(fields: [questionSetId], references: [id])
